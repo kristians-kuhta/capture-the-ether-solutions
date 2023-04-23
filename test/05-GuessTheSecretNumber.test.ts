@@ -24,9 +24,21 @@ describe('GuessTheSecretNumberChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    let n = null
+
+    for(let i=0; i < 2**8 - 1; i++) {
+      const hashed = utils.keccak256(`0x${i.toString(16).padStart(2, '0')}`);
+
+      if(hashed === "0xdb81b4d58595fbbbb592d3661a34cdca14d7ab379441400cbfa1b78bc447c365") {
+        n = i;
+        break;
+      }
+    }
+
+    expect(n).not.to.equal(null);
+
+    const tx = await target.guess(n, { value: utils.parseUnits('1', 'ether') });
+    await tx.wait();
 
     expect(await target.isComplete()).to.equal(true);
   });
